@@ -78,8 +78,9 @@ def GetCost(prev_thetas, thetas):
   return cost
 
 def SolveIKCheapest(prev_thetas, *args, **kwargs):
+  all_thetas = list(SolveIKLimits(*args, **kwargs))
   return min([(GetCost(prev_thetas, thetas), thetas)
-      for thetas in SolveIKLimits(*args, **kwargs)])[1]
+      for thetas in all_thetas])[1]
 
 def SolveIKLimits(*args, **kwargs):
   dtr = np.pi / 180.0

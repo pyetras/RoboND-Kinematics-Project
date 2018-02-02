@@ -18,10 +18,14 @@ from geometry_msgs.msg import Pose
 from mpmath import *
 from sympy import *
 import inverse_kinematics as ik
+from datetime import datetime
+import numpy as np
 
 prev_thetas = [0]*6
 
 def handle_calculate_IK(req):
+    queries = []
+
     global prev_thetas
 
     rospy.loginfo("Received %s eef-poses from the plan" % len(req.poses))
@@ -47,6 +51,8 @@ def handle_calculate_IK(req):
             # (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
 
             thetas = ik.SolveIKCheapest(prev_thetas, [px, py, pz], quaternion)
+            queries.append([px, py, pz] + quaternion + prev_thetas + thetas)
+
             # if IK_error(thetas, [px, py, pz]) > 0.1:
             #     print([[px, py, pz], quaternion])
             #     print([ik.SolveFK(thetas), thetas, prev_thetas])
@@ -55,7 +61,12 @@ def handle_calculate_IK(req):
             joint_trajectory_point.positions = thetas
             joint_trajectory_list.append(joint_trajectory_point)
 
+        # timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
+        # np.savetxt(
+        #     '/home/robond/catkin_ws/src/RoboND-Kinematics-Project/data/queries_%s.csv'%timestamp,
+        #     np.asarray(queries), delimiter=',')
         rospy.loginfo("length of Joint Trajectory List: %s" % len(joint_trajectory_list))
+
         return CalculateIKResponse(joint_trajectory_list)
 
 def IK_error(thetas, test_pos):
