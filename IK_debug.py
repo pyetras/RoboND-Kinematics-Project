@@ -2,6 +2,7 @@ from sympy import *
 from time import time
 from mpmath import radians
 import tf
+import kuka_arm.scripts.inverse_kinematics as ik
 
 '''
 Format of test case is [ [[EE position],[EE orientation as quaternions]],[WC location],[joint angles]]
@@ -58,34 +59,16 @@ def test_code(test_case):
 
     req = Pose(comb)
     start_time = time()
-    
-    ########################################################################################
-    ## 
 
-    ## Insert IK code here!
-    
-    theta1 = 0
-    theta2 = 0
-    theta3 = 0
-    theta4 = 0
-    theta5 = 0
-    theta6 = 0
+    thetas = \
+        ik.SolveIKCheapest([0]*6,
+            [position.x, position.y, position.z],
+            [orientation.x, orientation.y, orientation.z, orientation.w])
 
-    ## 
-    ########################################################################################
-    
-    ########################################################################################
-    ## For additional debugging add your forward kinematics here. Use your previously calculated thetas
-    ## as the input and output the position of your end effector as your_ee = [x,y,z]
-
-    ## (OPTIONAL) YOUR CODE HERE!
-
-    ## End your code input for forward kinematics here!
-    ########################################################################################
-
+    theta1, theta2, theta3, theta4, theta5, theta6 = thetas
     ## For error analysis please set the following variables of your WC location and EE location in the format of [x,y,z]
-    your_wc = [1,1,1] # <--- Load your calculated WC values in this array
-    your_ee = [1,1,1] # <--- Load your calculated end effector value from your forward kinematics
+    your_ee = ik.SolveFK(thetas)
+    your_wc = ik.SolveFKwc(thetas)
     ########################################################################################
 
     ## Error analysis
@@ -136,6 +119,6 @@ def test_code(test_case):
 
 if __name__ == "__main__":
     # Change test case number for different scenarios
-    test_case_number = 1
+    test_case_number = 3
 
     test_code(test_cases[test_case_number])

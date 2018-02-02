@@ -17,66 +17,56 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose
 from mpmath import *
 from sympy import *
+from inverse_kinematics import SolveIKCheapest
 
+prev_thetas = [0]*6
 
 def handle_calculate_IK(req):
+    global prev_thetas
+
     rospy.loginfo("Received %s eef-poses from the plan" % len(req.poses))
     if len(req.poses) < 1:
         print "No valid poses received"
         return -1
     else:
-
-        ### Your FK code here
-        # Create symbols
-	#
-	#
-	# Create Modified DH parameters
-	#
-	#
-	# Define Modified DH Transformation matrix
-	#
-	#
-	# Create individual transformation matrices
-	#
-	#
-	# Extract rotation matrices from the transformation matrices
-	#
-	#
-        ###
-
         # Initialize service response
         joint_trajectory_list = []
         for x in xrange(0, len(req.poses)):
             # IK code starts here
             joint_trajectory_point = JointTrajectoryPoint()
 
-	    # Extract end-effector position and orientation from request
-	    # px,py,pz = end-effector position
-	    # roll, pitch, yaw = end-effector orientation
+    	    # Extract end-effector position and orientation from request
+    	    # px,py,pz = end-effector position
             px = req.poses[x].position.x
             py = req.poses[x].position.y
             pz = req.poses[x].position.z
 
-            (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
-                [req.poses[x].orientation.x, req.poses[x].orientation.y,
-                    req.poses[x].orientation.z, req.poses[x].orientation.w])
+            quaternion = [req.poses[x].orientation.x, req.poses[x].orientation.y,
+                    req.poses[x].orientation.z, req.poses[x].orientation.w]
 
-            ### Your IK code here
-	    # Compensate for rotation discrepancy between DH parameters and Gazebo
-	    #
-	    #
-	    # Calculate joint angles using Geometric IK method
-	    #
-	    #
-            ###
+            # (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
 
-            # Populate response for the IK request
-            # In the next line replace theta1,theta2...,theta6 by your joint angle variables
-	    joint_trajectory_point.positions = [theta1, theta2, theta3, theta4, theta5, theta6]
-	    joint_trajectory_list.append(joint_trajectory_point)
+            thetas = SolveIKCheapest(prev_thetas, [px, py, pz], quaternion)
+            IK_error(thetas, [px, py, pz])
+            prev_thetas = thetas
+
+            joint_trajectory_point.positions = thetas
+            joint_trajectory_list.append(joint_trajectory_point)
 
         rospy.loginfo("length of Joint Trajectory List: %s" % len(joint_trajectory_list))
         return CalculateIKResponse(joint_trajectory_list)
+
+def IK_error(thetas, test_pos):
+    your_ee = ik.SolveFK(thetas)
+    if not(sum(your_ee)==3):
+        ee_x_e = abs(your_ee[0]-test_pos[0])
+        ee_y_e = abs(your_ee[1]-test_pos[1])
+        ee_z_e = abs(your_ee[2]-test_pos[2])
+        ee_offset = sqrt(ee_x_e**2 + ee_y_e**2 + ee_z_e**2)
+        rospy.loginfo("End effector error for x position is: %04.8f" % ee_x_e)
+        rospy.loginfo("End effector error for y position is: %04.8f" % ee_y_e)
+        rospy.loginfo("End effector error for z position is: %04.8f" % ee_z_e)
+        rospy.loginfo("Overall end effector offset is: %04.8f units \n" % ee_offset)
 
 
 def IK_server():
