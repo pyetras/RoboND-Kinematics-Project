@@ -23,7 +23,7 @@ test_cases = {1:[[[2.16135,-1.42635,1.55109],
                   [0.01735,-0.2179,0.9025,0.371016]],
                   [-1.1669,-0.17989,0.85137],
                   [-2.99,-0.12,0.94,4.06,1.29,-4.12]],
-              4:[],
+              4:[[[2.025334948912725, 0.9435231432919353, 1.3268344716975315], [-0.08137147213675607, -0.16717652116184525, 0.10456194492167763, 0.9769838760024222]],[1.74589694978219,0.873373350569398,1.23301330552001],[0,0,0,0,0,0]],
               5:[]}
 
 
@@ -61,7 +61,7 @@ def test_code(test_case):
     start_time = time()
 
     thetas = \
-        ik.SolveIKCheapest([0]*6,
+        ik.SolveIKCheapest([0.458563608458500, 0.124556067128484, 0.226224384739845, 2.49345609124389, 0.556593245816754, -2.75525282452534],
             [position.x, position.y, position.z],
             [orientation.x, orientation.y, orientation.z, orientation.w])
 
@@ -119,6 +119,6 @@ def test_code(test_case):
 
 if __name__ == "__main__":
     # Change test case number for different scenarios
-    test_case_number = 3
+    test_case_number = 4
 
     test_code(test_cases[test_case_number])

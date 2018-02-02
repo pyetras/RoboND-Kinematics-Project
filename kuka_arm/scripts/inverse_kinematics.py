@@ -51,7 +51,7 @@ R_gripper = rot_z(pi) * rot_y(-pi/2)
 d_star = sqrt(0.054**2 + 1.5**2)
 d_z = d1
 d_x = a[1]
-velocities = [123., 115., 112., 179., 172., 219.]
+velocities = np.array([123., 115., 112., 179., 172., 219.])
 limits = [
   [-185, 185],
   [-45, 85],
@@ -74,10 +74,7 @@ def DHMatrices():
 R0_3 = reduce(lambda acc, T: acc[0:3,0:3]*T[0:3,0:3], DHMatrices()[:3])
 
 def GetCost(prev_thetas, thetas):
-  cost = 0.
-  for pq, q, vel in zip(prev_thetas, thetas, velocities):
-    # t = s/V
-    cost += np.abs(pq - q)/vel
+  cost = np.sum(np.abs(np.array(prev_thetas) - np.array(thetas)) / velocities)
   return cost
 
 def SolveIKCheapest(prev_thetas, *args, **kwargs):
@@ -133,21 +130,21 @@ def SolveIK(ee_pos_vals, quaternion_vals, debug = False):
   qq1 = atan2(yc, xc)
 
   # q3
-  alpha = atan2(-0.054, 1.5)
+  alp = atan2(-0.054, 1.5)
   s = zc - d_z
   r = sqrt(xc**2 + yc**2) - d_x
   cosbet = (r**2 + s**2 - a[2]**2 - d_star**2)/(2*a[2]*d_star)
   for q3sign in [1]: #, -1]:
     sinbet = q3sign * sqrt(1 - cosbet**2)
 
-    qq3 = -(pi/2 - (atan2(sinbet, cosbet) + alpha))
+    qq3 = -(pi/2 - (atan2(sinbet, cosbet) + alp))
     # q2
     qq2 = pi/2 - (atan2(s, r) + atan2(d_star*sinbet, a[2] + d_star*cosbet))
 
     # Theta 4-6
-    R0_3 = R0_3.evalf(subs = {q1: qq1, q2: qq2, q3: qq3})
+    R0_3_eval = R0_3.evalf(subs = {q1: qq1, q2: qq2, q3: qq3})
 
-    R3_EE = Transpose(R0_3) * R0_EE
+    R3_EE = Transpose(R0_3_eval) * R0_EE
     sinq5 = sqrt(R3_EE[0,2]**2 + R3_EE[2, 2]**2)
     cosq5 = R3_EE[1,2]
     qq5 = atan2(sinq5, cosq5)
@@ -166,9 +163,10 @@ def SolveIK(ee_pos_vals, quaternion_vals, debug = False):
       print("computed wc_pos")
       pprint(SolveFKwc(thetas))
 
-      pprint("R0_EE")
-      pprint(T)
+      pprint("P0_EE")
+      pprint(T[0:3,3])
 
+      print("Computed P0_EE")
       pprint(SolveFK(thetas))
 
     yield Matrix(thetas).evalf()

@@ -17,7 +17,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from geometry_msgs.msg import Pose
 from mpmath import *
 from sympy import *
-from inverse_kinematics import SolveIKCheapest
+import inverse_kinematics as ik
 
 prev_thetas = [0]*6
 
@@ -46,8 +46,10 @@ def handle_calculate_IK(req):
 
             # (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quaternion)
 
-            thetas = SolveIKCheapest(prev_thetas, [px, py, pz], quaternion)
-            IK_error(thetas, [px, py, pz])
+            thetas = ik.SolveIKCheapest(prev_thetas, [px, py, pz], quaternion)
+            # if IK_error(thetas, [px, py, pz]) > 0.1:
+            #     print([[px, py, pz], quaternion])
+            #     print([ik.SolveFK(thetas), thetas, prev_thetas])
             prev_thetas = thetas
 
             joint_trajectory_point.positions = thetas
@@ -67,6 +69,7 @@ def IK_error(thetas, test_pos):
         rospy.loginfo("End effector error for y position is: %04.8f" % ee_y_e)
         rospy.loginfo("End effector error for z position is: %04.8f" % ee_z_e)
         rospy.loginfo("Overall end effector offset is: %04.8f units \n" % ee_offset)
+        return ee_offset
 
 
 def IK_server():
