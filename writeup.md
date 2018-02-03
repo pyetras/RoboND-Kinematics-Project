@@ -5,6 +5,7 @@
 [links]: ./misc_images/links.jpeg
 [t1-3]: ./misc_images/t1-3.jpeg
 [matrix]: ./misc_images/matrix.jpeg
+[playground]: ./misc_images/playground.png
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.
@@ -18,7 +19,7 @@
 
 Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
 --- | --- | --- | --- | ---
-0->1 | 0 | 0 | 0.75 | qi
+0->1 | 0 | 0 | 0.75 | q1
 1->2 | - pi/2 | 0.35 | 0 | -pi/2 + q2
 2->3 | 0 | 1.25 | 0 | q3
 3->4 |  - pi/2 | -0.054 | 1.5 | q4
@@ -65,3 +66,11 @@ would be out of range or the computations would lead to a division by zero.
 
 I've used a quaternion to a rotation matrix implementation I've found online to be
 able to work on the solution on a computer without ROS installed.
+
+I've found Jupyter notebook's interactive widgets useful for testing forward
+kinematics (see 'computations.ipynb' Forward Kinematics Playground).
+
+![playground][playground]
+
+The error between desired and computed EE position is small, less than 0.00001 on
+average. See the last section of `computations.ipynb` for code.
