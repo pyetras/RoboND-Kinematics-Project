@@ -140,31 +140,33 @@ def SolveIK(ee_pos_vals, quaternion_vals, debug=False):
 
     # For a rotation matrix inverse equals transpose.
     R3_EE = Transpose(R0_3_eval) * R0_EE
-    sinq5 = sqrt(R3_EE[0, 2] ** 2 + R3_EE[2, 2] ** 2)
+
     cosq5 = R3_EE[1, 2]
-    theta5 = atan2(sinq5, cosq5)
+    for t5sgn in [1, -1]:
+      sinq5 = t5sgn * sqrt(1 - cosq5 ** 2)
+      theta5 = atan2(sinq5, cosq5)
 
-    sinq4 = R3_EE[2, 2]
-    cosq4 = -R3_EE[0, 2]
-    theta4 = atan2(sinq4, cosq4)
+      sinq4 = t5sgn * R3_EE[2, 2]
+      cosq4 = -t5sgn * R3_EE[0, 2]
+      theta4 = atan2(sinq4, cosq4)
 
-    sinq6 = -R3_EE[1, 1]
-    cosq6 = R3_EE[1, 0]
-    theta6 = atan2(sinq6, cosq6)
+      sinq6 = -t5sgn * R3_EE[1, 1]
+      cosq6 = t5sgn * R3_EE[1, 0]
+      theta6 = atan2(sinq6, cosq6)
 
-    thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
+      thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
 
-    if debug:
-      print("computed wc_pos")
-      pprint(SolveFKwc(thetas))
+      if debug:
+        print("computed wc_pos")
+        pprint(SolveFKwc(thetas))
 
-      pprint("P0_EE")
-      pprint(T[0:3, 3])
+        pprint("P0_EE")
+        pprint(T[0:3, 3])
 
-      print("Computed P0_EE")
-      pprint(SolveFK(thetas))
+        print("Computed P0_EE")
+        pprint(SolveFK(thetas))
 
-    yield Matrix(thetas).evalf()
+      yield Matrix(thetas).evalf()
 
 
 def SolveIKLimits(*args, **kwargs):
