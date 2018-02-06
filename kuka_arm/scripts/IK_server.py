@@ -22,11 +22,12 @@ from datetime import datetime
 import numpy as np
 
 prev_thetas = [0]*6
+iteration = 0
 
 def handle_calculate_IK(req):
     queries = []
 
-    global prev_thetas
+    global prev_thetas, iteration
 
     rospy.loginfo("Received %s eef-poses from the plan" % len(req.poses))
     if len(req.poses) < 1:
@@ -61,11 +62,18 @@ def handle_calculate_IK(req):
             joint_trajectory_point.positions = thetas
             joint_trajectory_list.append(joint_trajectory_point)
 
-        # timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-        # np.savetxt(
-        #     '/home/robond/catkin_ws/src/RoboND-Kinematics-Project/data/queries_%s.csv'%timestamp,
-        #     np.asarray(queries), delimiter=',')
+        timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
+        np.savetxt(
+            '/home/robond/catkin_ws/src/RoboND-Kinematics-Project/data/queries_%s.csv'%timestamp,
+            np.asarray(queries), delimiter=',')
         rospy.loginfo("length of Joint Trajectory List: %s" % len(joint_trajectory_list))
+
+        if iteration % 2 == 1:
+            # This bit assumes that every other iteration will be moving the arm
+            # from starting position to the shelf. This is not true in general
+            # and should be replaced by some "restart" call to the service.
+            prev_thetas = [0]*6
+        iteration += 1
 
         return CalculateIKResponse(joint_trajectory_list)
 

@@ -121,12 +121,7 @@ def SolveIK(ee_pos_vals, quaternion_vals, debug=False):
   r = sqrt(xc ** 2 + yc ** 2) - d_x
   cosbet = (r ** 2 + s ** 2 - a[2] ** 2 - d_star ** 2) / (2 * a[2] * d_star)
   for q3sign in [1, -1]:
-    # sinbet can have two solutions. I've found that providing an alternative
-    # solution with negative sinbet may lead to more "indecisive" trajectories,
-    # where the arm would just spin around in place for a few frames. Perhaps
-    # a more advanced cost model that accounts for whole trajectory would solve
-    # this problem. Tweaking the current cost model [GetCost] leads to some
-    # interesting alternative trajectories too.
+    # sinbet can have two solutions.
     sinbet = q3sign * sqrt(1 - cosbet ** 2)
 
     theta3 = -(pi / 2 - (atan2(sinbet, cosbet) + alp))
@@ -142,16 +137,18 @@ def SolveIK(ee_pos_vals, quaternion_vals, debug=False):
     R3_EE = Transpose(R0_3_eval) * R0_EE
 
     cosq5 = R3_EE[1, 2]
-    for t5sgn in [1, -1]:
-      sinq5 = t5sgn * sqrt(1 - cosq5 ** 2)
-      theta5 = atan2(sinq5, cosq5)
+    sinq5 = sqrt(R3_EE[0,2]**2 + R3_EE[2, 2]**2)
+    for t5_flip in [1, 0]:
+      # Theta5 has an alternative solution at -Theta5
+      theta5 = (1 - 2*t5_flip) * atan2(sinq5, cosq5)
 
-      sinq4 = t5sgn * R3_EE[2, 2]
-      cosq4 = -t5sgn * R3_EE[0, 2]
+      sgn = sin(theta5)
+      sinq4 = R3_EE[2, 2]/sgn
+      cosq4 = -R3_EE[0, 2]/sgn
       theta4 = atan2(sinq4, cosq4)
 
-      sinq6 = -t5sgn * R3_EE[1, 1]
-      cosq6 = t5sgn * R3_EE[1, 0]
+      sinq6 = -R3_EE[1, 1]/sgn
+      cosq6 = R3_EE[1, 0]/sgn
       theta6 = atan2(sinq6, cosq6)
 
       thetas = [theta1, theta2, theta3, theta4, theta5, theta6]
@@ -205,7 +202,8 @@ def _GetCost(prev_thetas, thetas):
   from the urdf file."""
 
   # t = s/V. This is a max and not a sum since joints can move in parallel.
-  cost = np.max(np.abs(np.array(prev_thetas) - np.array(thetas)) / velocities)
+  times = np.abs(np.array(prev_thetas) - np.array(thetas)) / velocities
+  cost = (np.max(times), np.sum(times))
   return cost
 
 
