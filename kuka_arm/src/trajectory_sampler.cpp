@@ -177,7 +177,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     // define plan object which will hold the planned trajectory
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
-    bool success = move_group.plan(my_plan);
+    auto success = move_group.plan(my_plan);
     ROS_INFO("Visualizing plan to target: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -288,7 +288,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
-        bool worked = move_group.move();
+        auto worked = move_group.move();
         ROS_INFO("Robot actuation: %s", worked ? "SUCCEEDED" : "FAILED");
       }
     }
@@ -541,20 +541,20 @@ bool TrajectorySampler::OperateGripper(const bool &close_gripper)
   eef_group.setJointValueTarget(gripper_joint_positions);
   ros::Duration(1.5).sleep();
 
-  bool success = eef_group.move();
+  auto success = eef_group.move();
   return success;
 }
 
 bool TrajectorySampler::OpenGripper()
 {
-  bool success = OperateGripper(false);
+  auto success = OperateGripper(false);
   ROS_INFO("Gripper actuation: Opening %s", success ? "SUCCEEDED" : "FAILED");
   return success;
 }
 
 bool TrajectorySampler::CloseGripper()
 {
-  bool success = OperateGripper(true);
+  auto success = OperateGripper(true);
   ROS_INFO("Gripper actuation: Closing %s", success ? "SUCCEEDED" : "FAILED");
   return success;
 }
