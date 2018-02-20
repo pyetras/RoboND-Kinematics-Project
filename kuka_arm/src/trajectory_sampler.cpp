@@ -542,7 +542,7 @@ bool TrajectorySampler::OperateGripper(const bool &close_gripper)
   ros::Duration(1.5).sleep();
 
   auto success = eef_group.move();
-  return success;
+  return success ? true : false;
 }
 
 bool TrajectorySampler::OpenGripper()
