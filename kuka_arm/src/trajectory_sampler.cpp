@@ -450,7 +450,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
-        bool worked = move_group.move();
+        auto worked = move_group.move();
         ROS_INFO("Robot actuation: %s", worked ? "SUCCEEDED" : "FAILED");
       }
     }
